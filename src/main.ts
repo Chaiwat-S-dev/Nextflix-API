@@ -58,13 +58,14 @@ async function bootstrap() {
     .addTag('health', 'Health check endpoints')
     .build();
 
+  const CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css'; // Use a recent version
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/docs', app, document, {
     useGlobalPrefix: true,
     // swaggerOptions: {
     //   persistAuthorization: true,
     // },
-    // customfavIcon: 'https://avatars.githubusercontent.com/u/6936373?s=200&v=4',
+    customCssUrl: CSS_URL,
   });
 
   await app.listen(port);
