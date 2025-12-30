@@ -55,12 +55,14 @@ async function bootstrap() {
     .addTag('health', 'Health check endpoints')
     .build();
 
+  const CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css'; // Use a recent version
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/docs', app, document, {
     useGlobalPrefix: true,
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
+    // swaggerOptions: {
+    //   persistAuthorization: true,
+    // },
+    customCssUrl: CSS_URL,
   });
 
   await app.listen(port);
