@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Param,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Query, Param, UseInterceptors } from '@nestjs/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -12,8 +6,9 @@ import { MovieService } from '../services/movie.service';
 import { SearchMoviesDto } from '../dto/search-movies.dto';
 import { GetMovieByIdDto } from '../dto/get-movie-by-id.dto';
 import { GetPopularMoviesDto } from '../dto/get-popular-movies.dto';
-import { MovieSearchResult } from '../entities/movie.entity';
-import { MovieDetail } from '../entities/movie.entity';
+import { GetMoviesDto } from '../dto/get-movies.dto';
+import { GetTrendingMoviesDto } from '../dto/get-trending-movies.dto';
+import { MovieSearchResult, MovieDetail, Genre } from '../entities/movie.entity';
 
 @ApiTags('movies')
 @Controller('movies')
@@ -85,10 +80,94 @@ export class MovieController {
     });
   }
 
+  @Get()
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Get movies list with filtering and sorting' })
+  @ApiQuery({ name: 'page', description: 'Page number', required: false, example: 1 })
+  @ApiQuery({
+    name: 'sortBy',
+    description: 'Sort order',
+    required: false,
+    example: 'popularity.desc',
+  })
+  @ApiQuery({
+    name: 'withGenres',
+    description: 'Comma-separated genre IDs',
+    required: false,
+    example: '28,12',
+  })
+  @ApiQuery({ name: 'year', description: 'Release year', required: false, example: 2020 })
+  @ApiQuery({
+    name: 'voteAverageGte',
+    description: 'Minimum vote average',
+    required: false,
+    example: 7.0,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Movies retrieved successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 429, description: 'Too many requests' })
+  async getMovies(@Query() query: GetMoviesDto): Promise<MovieSearchResult> {
+    return this.movieService.getMovies({
+      page: query.page || 1,
+      sortBy: query.sortBy,
+      withGenres: query.withGenres,
+      year: query.year,
+      voteAverageGte: query.voteAverageGte,
+    });
+  }
+
+  @Get('genres')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Get all movie genres' })
+  @ApiResponse({
+    status: 200,
+    description: 'Genres retrieved successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', example: 28 },
+          name: { type: 'string', example: 'Action' },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 429, description: 'Too many requests' })
+  async getGenres(): Promise<Genre[]> {
+    return this.movieService.getGenres({});
+  }
+
+  @Get('trending')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Get trending movies' })
+  @ApiQuery({ name: 'page', description: 'Page number', required: false, example: 1 })
+  @ApiQuery({
+    name: 'timeWindow',
+    description: 'Time window (day or week)',
+    required: false,
+    example: 'day',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Trending movies retrieved successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 429, description: 'Too many requests' })
+  async getTrendingMovies(@Query() query: GetTrendingMoviesDto): Promise<MovieSearchResult> {
+    return this.movieService.getTrendingMovies({
+      page: query.page || 1,
+      timeWindow: query.timeWindow || 'day',
+    });
+  }
+
   @Get(':id')
   @Throttle({ default: { limit: 20, ttl: 60000 } })
-  @ApiOperation({ summary: 'Get movie details by ID (IMDb ID format: tt1234567)' })
-  @ApiParam({ name: 'id', description: 'Movie ID (IMDb ID format: tt1234567 or numeric)', example: 'tt3896198' })
+  @ApiOperation({ summary: 'Get movie details by ID' })
+  @ApiParam({ name: 'id', description: 'Movie ID (numeric)', example: 603 })
   @ApiResponse({
     status: 200,
     description: 'Movie details retrieved successfully',
@@ -137,8 +216,7 @@ export class MovieController {
   @ApiResponse({ status: 429, description: 'Too many requests' })
   async getMovieById(@Param() params: GetMovieByIdDto): Promise<MovieDetail> {
     return this.movieService.getMovieById({
-      id: params.id as string,
+      id: params.id,
     });
   }
 }
-

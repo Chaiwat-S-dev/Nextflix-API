@@ -1,17 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, Matches } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class GetMovieByIdDto {
   @ApiProperty({
-    description: 'Movie ID (IMDb ID format: tt1234567 or numeric ID)',
-    example: 'tt3896198',
+    description: 'Movie ID (numeric)',
+    example: 603,
     required: true,
+    minimum: 1,
   })
-  @IsString()
-  @IsNotEmpty()
-  @Matches(/^(tt\d{7,8}|\d+)$/, {
-    message: 'ID must be in IMDb format (tt1234567) or numeric',
-  })
-  id: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  id: number;
 }
 

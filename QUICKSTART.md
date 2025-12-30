@@ -15,15 +15,15 @@ Create a `.env` file in the root directory with the following content:
 NODE_ENV=development
 PORT=3000
 API_PREFIX=api
-OMDB_API_KEY=your_omdb_api_key_here
-OMDB_BASE_URL=http://www.omdbapi.com
+TMDB_API_KEY=your_tmdb_api_key_here
+TMDB_BASE_URL=https://api.themoviedb.org/3
 CACHE_TTL=300
 THROTTLE_TTL=60
 THROTTLE_LIMIT=10
 LOG_LEVEL=info
 ```
 
-**Important:** Get your OMDB API key from: http://www.omdbapi.com/apikey.aspx
+**Important:** Get your TMDB API key from: https://www.themoviedb.org/settings/api
 
 ## 3. Run the Application
 
@@ -49,8 +49,17 @@ Once running, the application will be available at:
 # Search movies
 curl "http://localhost:3000/api/movies/search?query=The%20Matrix&page=1"
 
-# Get movie details (using IMDb ID)
-curl "http://localhost:3000/api/movies/tt3896198"
+# Get movie details (using numeric ID)
+curl "http://localhost:3000/api/movies/603"
+
+# Get genres list
+curl "http://localhost:3000/api/movies/genres"
+
+# Get trending movies
+curl "http://localhost:3000/api/movies/trending?timeWindow=day"
+
+# Get movies list with filtering
+curl "http://localhost:3000/api/movies?sortBy=popularity.desc&withGenres=28"
 
 # Get popular movies
 curl "http://localhost:3000/api/movies/popular?page=1"
@@ -71,6 +80,6 @@ curl http://localhost:3000/api/health
 ## Troubleshooting
 
 - **Port already in use:** Change `PORT` in `.env` file
-- **OMDB API errors:** Verify your API key is correct
+- **TMDB API errors:** Verify your API key is correct
 - **Module not found:** Run `npm install` again
 

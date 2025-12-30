@@ -25,4 +25,3 @@ export class SearchMoviesDto {
   @Min(1)
   page?: number = 1;
 }
-

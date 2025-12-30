@@ -6,8 +6,11 @@ import {
   SearchMoviesParams,
   GetMovieByIdParams,
   GetPopularMoviesParams,
+  GetGenresParams,
+  GetTrendingMoviesParams,
+  GetMoviesParams,
 } from '../interfaces/movie-repository.interface';
-import { MovieSearchResult, MovieDetail } from '../entities/movie.entity';
+import { MovieSearchResult, MovieDetail, Genre } from '../entities/movie.entity';
 
 @Injectable()
 export class MovieService {
@@ -55,6 +58,56 @@ export class MovieService {
     }
 
     const result = await this.movieRepository.getPopularMovies(params);
+    await this.cacheManager.set(cacheKey, result);
+
+    return result;
+  }
+
+  async getGenres(params: GetGenresParams): Promise<Genre[]> {
+    const cacheKey = 'movies:genres';
+
+    const cached = await this.cacheManager.get<Genre[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const result = await this.movieRepository.getGenres(params);
+    await this.cacheManager.set(cacheKey, result);
+
+    return result;
+  }
+
+  async getTrendingMovies(params: GetTrendingMoviesParams): Promise<MovieSearchResult> {
+    const cacheKey = `movies:trending:${params.timeWindow}:${params.page}`;
+
+    const cached = await this.cacheManager.get<MovieSearchResult>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const result = await this.movieRepository.getTrendingMovies(params);
+    await this.cacheManager.set(cacheKey, result);
+
+    return result;
+  }
+
+  async getMovies(params: GetMoviesParams): Promise<MovieSearchResult> {
+    // Create cache key from params
+    const paramsKey = JSON.stringify({
+      page: params.page,
+      sortBy: params.sortBy,
+      withGenres: params.withGenres,
+      year: params.year,
+      voteAverageGte: params.voteAverageGte,
+    });
+    const cacheKey = `movies:discover:${paramsKey}`;
+
+    const cached = await this.cacheManager.get<MovieSearchResult>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const result = await this.movieRepository.getMovies(params);
     await this.cacheManager.set(cacheKey, result);
 
     return result;

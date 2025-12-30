@@ -1,6 +1,6 @@
 # Nextflix Backend API
 
-A production-ready NestJS backend service that provides movie data by integrating with The Open Movie Database (OMDB) API.
+A production-ready NestJS backend service that provides movie data by integrating with The Movie Database (TMDB) API.
 
 ## 🏗 Architecture
 
@@ -21,7 +21,7 @@ This project follows **Clean Architecture** principles with clear separation of 
                      ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   Repository Layer                      │
-│            (External API Calls - OMDB)                   │
+│            (External API Calls - TMDB)                   │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -65,7 +65,7 @@ src/
 
 - Node.js 20+ 
 - npm or yarn
-- OMDB API Key ([Get one here](http://www.omdbapi.com/apikey.aspx))
+- TMDB API Key ([Get one here](https://www.themoviedb.org/settings/api))
 
 ## 🛠 Setup Instructions
 
@@ -86,9 +86,9 @@ NODE_ENV=development
 PORT=3000
 API_PREFIX=api
 
-# OMDB API
-OMDB_API_KEY=your_omdb_api_key_here
-OMDB_BASE_URL=http://www.omdbapi.com
+# TMDB API
+TMDB_API_KEY=your_tmdb_api_key_here
+TMDB_BASE_URL=https://api.themoviedb.org/3
 
 # Cache
 CACHE_TTL=300
@@ -101,7 +101,7 @@ THROTTLE_LIMIT=10
 LOG_LEVEL=info
 ```
 
-**Important:** Replace `your_omdb_api_key_here` with your actual OMDB API key. The API key is passed as a query parameter (`apikey`) in all requests.
+**Important:** Replace `your_tmdb_api_key_here` with your actual TMDB API Bearer token. Get your API key from [TMDB Settings](https://www.themoviedb.org/settings/api). The API uses Bearer token authentication in the Authorization header.
 
 ### 3. Run Locally
 
@@ -161,12 +161,51 @@ GET /api/movies/:id
 ```
 
 **Path Parameters:**
-- `id` (required): Movie ID in IMDb format (e.g., `tt3896198`) or numeric ID
+- `id` (required): Movie ID (numeric, e.g., `603`)
 
 **Example:**
 ```http
-GET /api/movies/tt3896198
+GET /api/movies/603
 ```
+
+### Get Movies List (Discover)
+
+```http
+GET /api/movies?page=1&sortBy=popularity.desc&withGenres=28&year=2020
+```
+
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `sortBy` (optional): Sort order (popularity.desc, vote_average.desc, release_date.desc)
+- `withGenres` (optional): Comma-separated genre IDs
+- `year` (optional): Release year
+- `voteAverageGte` (optional): Minimum vote average
+
+### Get Genres
+
+```http
+GET /api/movies/genres
+```
+
+**Response:**
+```json
+{
+  "genres": [
+    {"id": 28, "name": "Action"},
+    {"id": 12, "name": "Adventure"}
+  ]
+}
+```
+
+### Get Trending Movies
+
+```http
+GET /api/movies/trending?page=1&timeWindow=day
+```
+
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `timeWindow` (optional): 'day' or 'week' (default: 'day')
 
 ### Get Popular Movies
 
@@ -203,7 +242,7 @@ docker build -t nextflix-api .
 
 ```bash
 docker run -p 3000:3000 \
-  -e OMDB_API_KEY=your_api_key \
+  -e TMDB_API_KEY=your_api_key \
   -e PORT=3000 \
   nextflix-api
 ```
@@ -222,7 +261,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - OMDB_API_KEY=${OMDB_API_KEY}
+      - TMDB_API_KEY=${TMDB_API_KEY}
       - CACHE_TTL=300
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
@@ -251,10 +290,10 @@ All errors follow a consistent format:
 ```json
 {
   "statusCode": 404,
-  "message": "Movie with ID tt9999999 not found",
+  "message": "Movie with ID 999999 not found",
   "errorCode": "MOVIE_NOT_FOUND",
   "timestamp": "2024-01-01T00:00:00.000Z",
-  "path": "/api/movies/tt9999999"
+  "path": "/api/movies/999999"
 }
 ```
 
@@ -273,12 +312,13 @@ Rate limit headers are included in responses:
 
 The application uses in-memory caching with the following cache keys:
 - `movies:search:{query}:{page}` - Search results
-- `movies:detail:{movieId}` - Movie details (supports IMDb ID format)
-- `movies:popular:{page}` - Popular movies (workaround using search)
+- `movies:detail:{movieId}` - Movie details
+- `movies:popular:{page}` - Popular movies
+- `movies:discover:{params}` - Discover/list movies
+- `movies:trending:{timeWindow}:{page}` - Trending movies
+- `movies:genres` - Genres list
 
 Default TTL: 5 minutes (300 seconds)
-
-**Note:** OMDB API doesn't have a native "popular movies" endpoint, so the `/api/movies/popular` endpoint uses a workaround by searching popular movie terms.
 
 ## 📝 Logging
 
@@ -303,7 +343,7 @@ vercel
 ```
 
 3. Set environment variables in Vercel dashboard:
-   - `OMDB_API_KEY`
+   - `TMDB_API_KEY`
    - `NODE_ENV=production`
    - `PORT=3000`
 
