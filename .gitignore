@@ -42,3 +42,6 @@ lerna-debug.log*
 # Build
 *.tsbuildinfo
 
+# Swagger static files (generated in development)
+/swagger-static
+
