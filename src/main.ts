@@ -22,6 +22,19 @@ async function bootstrap() {
   // Security
   app.use(helmet());
 
+  // CORS configuration
+  app.enableCors({
+    origin: [
+      'https://petstore.swagger.io',
+      ...(process.env.NODE_ENV === 'development'
+        ? ['http://localhost:3000', 'http://localhost:3001']
+        : []),
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true,
+  });
+
   // Compression
   // app.use(compression());
 
@@ -53,6 +66,11 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('movies', 'Movie-related endpoints')
     .addTag('health', 'Health check endpoints')
+    .addServer(
+      process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : `http://localhost:${port}`,
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
