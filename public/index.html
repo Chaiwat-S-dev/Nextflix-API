@@ -186,16 +186,63 @@
     <script>
         function copyToClipboard() {
             const input = document.getElementById('swagger-url');
-            input.select();
-            input.setSelectionRange(0, 99999); // For mobile devices
+            const success = document.getElementById('copy-success');
             
-            navigator.clipboard.writeText(input.value).then(() => {
-                const success = document.getElementById('copy-success');
-                success.style.display = 'block';
-                setTimeout(() => {
-                    success.style.display = 'none';
-                }, 2000);
-            });
+            // Try modern Clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    showSuccess();
+                }).catch(() => {
+                    // Fallback to execCommand if Clipboard API fails
+                    fallbackCopy(input, success);
+                });
+            } else {
+                // Fallback to execCommand for older browsers
+                fallbackCopy(input, success);
+            }
+        }
+        
+        function fallbackCopy(input, success) {
+            // Create a temporary textarea element
+            const textarea = document.createElement('textarea');
+            textarea.value = input.value;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+            textarea.style.top = '-999999px';
+            document.body.appendChild(textarea);
+            
+            // Select and copy
+            textarea.focus();
+            textarea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showSuccess();
+                } else {
+                    // If execCommand fails, try selecting the input
+                    input.select();
+                    input.setSelectionRange(0, 99999);
+                    showSuccess();
+                }
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                // Last resort: select the input and show message
+                input.select();
+                input.setSelectionRange(0, 99999);
+                showSuccess();
+            } finally {
+                // Clean up
+                document.body.removeChild(textarea);
+            }
+        }
+        
+        function showSuccess() {
+            const success = document.getElementById('copy-success');
+            success.style.display = 'block';
+            setTimeout(() => {
+                success.style.display = 'none';
+            }, 2000);
         }
         
         function openSwagger() {

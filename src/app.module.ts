@@ -6,6 +6,7 @@ import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AppController } from './app.controller';
+import { PortalController } from './portal.controller';
 import { MoviesModule } from './modules/movies/movies.module';
 import { LoggerModule } from './common/logging/logger.module';
 import { CacheConfigService } from './config/cache.config';
@@ -18,7 +19,7 @@ import { CacheConfigService } from './config/cache.config';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'swagger-static'),
-      serveRoot: process.env.NODE_ENV === 'development' ? '/' : '/swagger',
+      serveRoot: process.env.NODE_ENV === 'development' ? '/swagger' : '/swagger',
     }),
     ThrottlerModule.forRoot([
       {
@@ -33,7 +34,7 @@ import { CacheConfigService } from './config/cache.config';
     LoggerModule,
     MoviesModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, PortalController],
   providers: [
     {
       provide: APP_INTERCEPTOR,
@@ -42,4 +43,3 @@ import { CacheConfigService } from './config/cache.config';
   ],
 })
 export class AppModule {}
-

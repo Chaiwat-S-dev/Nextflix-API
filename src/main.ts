@@ -58,8 +58,10 @@ async function bootstrap() {
   // Compression
   // app.use(compression());
 
-  // Global prefix
-  app.setGlobalPrefix(apiPrefix);
+  // Global prefix (exclude root path for portal)
+  app.setGlobalPrefix(apiPrefix, {
+    exclude: ['/'],
+  });
 
   // Global validation pipe
   app.useGlobalPipes(
