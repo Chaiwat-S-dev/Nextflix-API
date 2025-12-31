@@ -19,10 +19,7 @@ async function bootstrap() {
   const apiPrefix = configService.get<string>('API_PREFIX', 'api');
   const port = configService.get<number>('PORT', 3000);
 
-  // Security
-  app.use(helmet());
-
-  // CORS configuration
+  // CORS configuration (must be before helmet)
   app.enableCors({
     origin: [
       'https://petstore.swagger.io',
@@ -30,10 +27,30 @@ async function bootstrap() {
         ? ['http://localhost:3000', 'http://localhost:3001']
         : []),
     ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+      'Access-Control-Allow-Origin',
+      'Access-Control-Allow-Headers',
+      'Access-Control-Allow-Methods',
+    ],
+    exposedHeaders: ['Content-Length', 'Content-Type'],
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
+
+  // Security - Configure helmet to work with CORS
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
   // Compression
   // app.use(compression());
