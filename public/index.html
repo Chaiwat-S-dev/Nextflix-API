@@ -158,7 +158,7 @@
                     value="https://nextflix-api-lake.vercel.app/api/swagger.json" 
                     readonly
                 />
-                <button id="copy-button">Copy</button>
+                <button onclick="copyToClipboard()">Copy</button>
             </div>
             <span class="copy-success" id="copy-success">✓ Copied to clipboard!</span>
         </div>
@@ -167,7 +167,7 @@
             href="https://petstore.swagger.io/" 
             target="_blank" 
             class="swagger-link"
-            id="swagger-link"
+            onclick="openSwagger()"
         >
             🚀 Open Swagger UI
         </a>
@@ -184,23 +184,6 @@
     </div>
     
     <script>
-        // Wait for DOM to be ready
-        document.addEventListener('DOMContentLoaded', function() {
-            // Copy button event listener
-            const copyButton = document.getElementById('copy-button');
-            if (copyButton) {
-                copyButton.addEventListener('click', copyToClipboard);
-            }
-            
-            // Swagger link event listener (optional, for tracking)
-            const swaggerLink = document.getElementById('swagger-link');
-            if (swaggerLink) {
-                swaggerLink.addEventListener('click', function() {
-                    console.log('Opening Swagger UI...');
-                });
-            }
-        });
-        
         function copyToClipboard() {
             const input = document.getElementById('swagger-url');
             const success = document.getElementById('copy-success');
@@ -260,6 +243,11 @@
             setTimeout(() => {
                 success.style.display = 'none';
             }, 2000);
+        }
+        
+        function openSwagger() {
+            // Optional: You can add analytics or tracking here
+            console.log('Opening Swagger UI...');
         }
     </script>
 </body>
