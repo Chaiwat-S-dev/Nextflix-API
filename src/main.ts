@@ -21,25 +21,7 @@ async function bootstrap() {
 
   // CORS configuration (must be before helmet)
   app.enableCors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      const allowedOrigins = [
-        'https://petstore.swagger.io',
-        ...(process.env.NODE_ENV === 'development'
-          ? ['http://localhost:3000', 'http://localhost:3001']
-          : []),
-      ];
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Allow all origins for now, or use callback(new Error('Not allowed'), false) to restrict
-      }
-    },
+    origin: '*', // Allow all origins
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
     allowedHeaders: [
       'Content-Type',
@@ -50,12 +32,8 @@ async function bootstrap() {
       'X-CSRF-Token',
       'X-Request-ID',
     ],
-    exposedHeaders: [
-      'Content-Length',
-      'Content-Type',
-      'X-Request-ID',
-    ],
-    credentials: true,
+    exposedHeaders: ['Content-Length', 'Content-Type', 'X-Request-ID'],
+    // credentials: true, // Cannot use with origin: '*'
     preflightContinue: false,
     optionsSuccessStatus: 204,
     maxAge: 86400, // 24 hours
@@ -109,9 +87,7 @@ async function bootstrap() {
     .addTag('movies', 'Movie-related endpoints')
     .addTag('health', 'Health check endpoints')
     .addServer(
-      process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : `http://localhost:${port}`,
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${port}`,
     )
     .build();
 
