@@ -80,15 +80,17 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
 
   // Swagger documentation
+  const productionServerUrl = configService.get<string>(
+    'PRODUCTION_SERVER_URL',
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${port}`,
+  );
   const config = new DocumentBuilder()
     .setTitle('Nextflix API')
     .setDescription('A production-ready NestJS backend service for movie data')
     .setVersion('1.0')
     .addTag('movies', 'Movie-related endpoints')
     .addTag('health', 'Health check endpoints')
-    .addServer(
-      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${port}`,
-    )
+    .addServer(productionServerUrl)
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
