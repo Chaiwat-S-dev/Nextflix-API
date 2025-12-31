@@ -21,12 +21,25 @@ async function bootstrap() {
 
   // CORS configuration (must be before helmet)
   app.enableCors({
-    origin: [
-      'https://petstore.swagger.io',
-      ...(process.env.NODE_ENV === 'development'
-        ? ['http://localhost:3000', 'http://localhost:3001']
-        : []),
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const allowedOrigins = [
+        'https://petstore.swagger.io',
+        ...(process.env.NODE_ENV === 'development'
+          ? ['http://localhost:3000', 'http://localhost:3001']
+          : []),
+      ];
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Allow all origins for now, or use callback(new Error('Not allowed'), false) to restrict
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
     allowedHeaders: [
       'Content-Type',
@@ -34,14 +47,18 @@ async function bootstrap() {
       'Accept',
       'Origin',
       'X-Requested-With',
-      'Access-Control-Allow-Origin',
-      'Access-Control-Allow-Headers',
-      'Access-Control-Allow-Methods',
+      'X-CSRF-Token',
+      'X-Request-ID',
     ],
-    exposedHeaders: ['Content-Length', 'Content-Type'],
+    exposedHeaders: [
+      'Content-Length',
+      'Content-Type',
+      'X-Request-ID',
+    ],
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    maxAge: 86400, // 24 hours
   });
 
   // Security - Configure helmet to work with CORS
@@ -49,6 +66,14 @@ async function bootstrap() {
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
       crossOriginEmbedderPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://petstore.swagger.io'],
+          scriptSrc: ["'self'", "'unsafe-inline'", 'https://petstore.swagger.io'],
+          imgSrc: ["'self'", 'data:', 'https:'],
+        },
+      },
     }),
   );
 

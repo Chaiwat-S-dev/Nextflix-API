@@ -10,7 +10,30 @@
       {
         "src": "/(.*)",
         "dest": "src/main.ts",
-        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
+      }
+    ],
+    "headers": [
+      {
+        "source": "/api/(.*)",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "https://petstore.swagger.io"
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
+          },
+          {
+            "key": "Access-Control-Allow-Headers",
+            "value": "Content-Type, Authorization, Accept, Origin, X-Requested-With"
+          },
+          {
+            "key": "Access-Control-Allow-Credentials",
+            "value": "true"
+          }
+        ]
       }
     ]
 }
